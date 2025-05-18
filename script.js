@@ -1,7 +1,6 @@
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRn3j2bAUHpskd8FdsxD3X5q4oI3457IzFaYJF9Ubtn07M7TzgAFrALfHPuZ8zNgA/pub?gid=73486426&single=true&output=csv';
 let datos = [];
 
-// Mapeo entre ID de los selects y columnas del CSV
 const filtrosMap = {
   year: 'Año',
   month: 'Mes',
@@ -143,8 +142,16 @@ function renderResumenServicios() {
     const ingreso = parseFloat(d['Total ($)'] || 0);
     const costo = ['Movistar ($)', 'Claro ($)', 'CNT ($)']
       .reduce((acc, k) => acc + parseFloat(d[k] || 0), 0);
-    if (!resumenServicios[servicio]) resumenServicios[servicio] = { ingreso: 0, costo: 0 };
-    resumenServicios[servicio].ingreso += ingreso;
+    const pais = d['País'];
+
+    if (!resumenServicios[servicio]) resumenServicios[servicio] = { ingresoUSD: 0, ingresoDOP: 0, costo: 0 };
+
+    if (pais === 'Ecuador') {
+      resumenServicios[servicio].ingresoUSD += ingreso;
+    } else if (pais === 'Republica Dominicana') {
+      resumenServicios[servicio].ingresoDOP += ingreso;
+    }
+
     resumenServicios[servicio].costo += costo;
   });
 
@@ -156,20 +163,23 @@ function renderResumenServicios() {
       <thead class="table-light">
         <tr>
           <th>Servicio</th>
-          <th>Ingresos</th>
+          <th>Ingresos (USD)</th>
+          <th>Ingresos (DOP)</th>
           <th>Costos</th>
-          <th>Utilidad</th>
+          <th>Utilidad (USD + DOP)</th>
           <th>% Rentabilidad</th>
         </tr>
       </thead>
       <tbody>
-        ${Object.entries(resumenServicios).map(([servicio, { ingreso, costo }]) => {
-          const utilidad = ingreso - costo;
-          const rentabilidad = ingreso > 0 ? (utilidad / ingreso) * 100 : 0;
+        ${Object.entries(resumenServicios).map(([servicio, { ingresoUSD, ingresoDOP, costo }]) => {
+          const totalIngreso = ingresoUSD + ingresoDOP;
+          const utilidad = totalIngreso - costo;
+          const rentabilidad = totalIngreso > 0 ? (utilidad / totalIngreso) * 100 : 0;
           return `
             <tr>
               <td>${servicio}</td>
-              <td>$${ingreso.toFixed(2)}</td>
+              <td>$${ingresoUSD.toFixed(2)}</td>
+              <td>RD$${ingresoDOP.toFixed(2)}</td>
               <td>$${costo.toFixed(2)}</td>
               <td>$${utilidad.toFixed(2)}</td>
               <td>${rentabilidad.toFixed(2)}%</td>
