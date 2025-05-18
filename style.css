@@ -1,4 +1,3 @@
-
 body {
   font-family: Arial, sans-serif;
   padding: 20px;
@@ -6,17 +5,6 @@ body {
 }
 h1 {
   text-align: center;
-}
-#summary-cards {
-  display: flex;
-  justify-content: space-around;
-  margin: 20px 0;
-}
-.card {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 #summary-cards {
   display: flex;
