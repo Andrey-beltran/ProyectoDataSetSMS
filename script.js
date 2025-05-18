@@ -1,7 +1,16 @@
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRn3j2bAUHpskd8FdsxD3X5q4oI3457IzFaYJF9Ubtn07M7TzgAFrALfHPuZ8zNgA/pub?gid=73486426&single=true&output=csv';
 let datos = [];
 
-// Función para inicializar
+// Mapeo entre ID de los selects y columnas del CSV
+const filtrosMap = {
+  year: 'Año',
+  month: 'Mes',
+  country: 'País',
+  company: 'Empresa',
+  client: 'Cliente',
+  executive: 'Ejecutiva'
+};
+
 window.onload = function () {
   Papa.parse(csvUrl, {
     download: true,
@@ -15,10 +24,9 @@ window.onload = function () {
 };
 
 function cargarFiltros() {
-  const campos = ['Año', 'Mes', 'País', 'Empresa', 'Cliente', 'Ejecutiva'];
-  campos.forEach(campo => {
-    const valores = [...new Set(datos.map(d => d[campo]).filter(Boolean))].sort();
-    const select = document.getElementById(campo.toLowerCase());
+  for (const [id, columna] of Object.entries(filtrosMap)) {
+    const valores = [...new Set(datos.map(d => d[columna]).filter(Boolean))].sort();
+    const select = document.getElementById(id);
     if (select) {
       valores.forEach(v => {
         const option = document.createElement('option');
@@ -28,29 +36,17 @@ function cargarFiltros() {
       });
       select.addEventListener('change', actualizarDashboard);
     }
-  });
+  }
 }
 
 function actualizarDashboard() {
-  const filtros = {
-    año: document.getElementById('year').value,
-    mes: document.getElementById('month').value,
-    país: document.getElementById('country').value,
-    empresa: document.getElementById('company').value,
-    cliente: document.getElementById('client').value,
-    ejecutiva: document.getElementById('executive').value,
-  };
-
   let filtrado = datos.filter(d => {
-    return (!filtros.año || d['Año'] === filtros.año)
-        && (!filtros.mes || d['Mes'] === filtros.mes)
-        && (!filtros.país || d['País'] === filtros.país)
-        && (!filtros.empresa || d['Empresa'] === filtros.empresa)
-        && (!filtros.cliente || d['Cliente'] === filtros.cliente)
-        && (!filtros.ejecutiva || d['Ejecutiva'] === filtros.ejecutiva);
+    return Object.entries(filtrosMap).every(([id, columna]) => {
+      const valor = document.getElementById(id).value;
+      return !valor || d[columna] === valor;
+    });
   });
 
-  // Calcular métricas
   let totalMensajes = filtrado.reduce((acc, d) => acc + parseFloat(d['Total Trafico SMS'] || 0), 0);
   let ingresos = filtrado.reduce((acc, d) => acc + parseFloat(d['Total ($)'] || 0), 0);
   let tasaProm = filtrado.length > 0 ? (filtrado.reduce((acc, d) => {
@@ -111,7 +107,7 @@ function renderEmpresas(filtrado) {
   let resumen = {};
   filtrado.forEach(d => {
     let emp = d['Empresa'];
-    if (!resumen[emp]) resumen[emp] = { mensajes: 0, entregas: 0, entradas: 0 };
+    if (!resumen[emp]) resumen[emp] = { mensajes: 0 };
     resumen[emp].mensajes += parseFloat(d['Total Trafico SMS'] || 0);
   });
 
