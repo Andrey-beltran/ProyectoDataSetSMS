@@ -1,16 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard SMS actualizado</title>
+  <title>SMS Traffic Analytics</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>Dashboard Tráfico SMS</h1>
-  <div id="summary-cards"></div>
-  <canvas id="trafficChart" width="600" height="400"></canvas>
+  <h1>SMS Traffic Analytics</h1>
+  <p class="subtitulo">Monitoreo de métricas de tráfico de SMS por país, empresa y canal</p>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <select id="filterYear">
+      <option value="">Año</option>
+    </select>
+    <select id="filterMonth">
+      <option value="">Mes</option>
+    </select>
+    <select id="filterExecutive">
+      <option value="">Todas las ejecutivas</option>
+    </select>
+  </div>
+
+  <!-- Tarjetas resumen -->
+  <div id="summary-cards">
+    <!-- Las tarjetas se generarán desde JS -->
+  </div>
+
+  <!-- Gráfica -->
+  <div class="chart-container">
+    <canvas id="trafficChart" width="800" height="400"></canvas>
+  </div>
 
   <script src="script.js"></script>
 </body>
