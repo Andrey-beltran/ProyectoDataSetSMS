@@ -19,6 +19,7 @@ window.onload = function () {
       datos = results.data;
       cargarFiltros();
       actualizarDashboard();
+      renderResumenServicios();
     }
   });
 };
@@ -34,7 +35,10 @@ function cargarFiltros() {
         option.textContent = v;
         select.appendChild(option);
       });
-      select.addEventListener('change', actualizarDashboard);
+      select.addEventListener('change', () => {
+        actualizarDashboard();
+        renderResumenServicios();
+      });
     }
   }
 }
@@ -122,5 +126,56 @@ function renderEmpresas(filtrado) {
     `;
     container.appendChild(div);
   });
+}
+
+function renderResumenServicios() {
+  let filtrado = datos.filter(d => {
+    return Object.entries(filtrosMap).every(([id, columna]) => {
+      const valor = document.getElementById(id).value;
+      return !valor || d[columna] === valor;
+    });
+  });
+
+  const resumenServicios = {};
+
+  filtrado.forEach(d => {
+    const servicio = d['Servicio'] || 'No definido';
+    const ingreso = parseFloat(d['Total ($)'] || 0);
+    const costo = ['Movistar ($)', 'Claro ($)', 'CNT ($)']
+      .reduce((acc, k) => acc + parseFloat(d[k] || 0), 0);
+    if (!resumenServicios[servicio]) resumenServicios[servicio] = { ingreso: 0, costo: 0 };
+    resumenServicios[servicio].ingreso += ingreso;
+    resumenServicios[servicio].costo += costo;
+  });
+
+  const tabla = document.getElementById('resumenServicios');
+  if (!tabla) return;
+
+  tabla.innerHTML = `
+    <table class="table table-bordered table-sm table-hover mt-4">
+      <thead class="table-light">
+        <tr>
+          <th>Servicio</th>
+          <th>Ingresos</th>
+          <th>Costos</th>
+          <th>Utilidad</th>
+          <th>% Rentabilidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Object.entries(resumenServicios).map(([servicio, { ingreso, costo }]) => {
+          const utilidad = ingreso - costo;
+          const rentabilidad = ingreso > 0 ? (utilidad / ingreso) * 100 : 0;
+          return `
+            <tr>
+              <td>${servicio}</td>
+              <td>$${ingreso.toFixed(2)}</td>
+              <td>$${costo.toFixed(2)}</td>
+              <td>$${utilidad.toFixed(2)}</td>
+              <td>${rentabilidad.toFixed(2)}%</td>
+            </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
